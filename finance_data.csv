@@ -1,32 +1,22 @@
 date,category,description,amount
-14/11/2024,Expense,Lunch,10.00
-13/11/2024,Income,Salary,1500.00
-12/11/2024,Expense,Groceries,45.75
-10/11/2024,Income,Freelance Work,200.00
-09/11/2024,Expense,Transport,30.50
-08/11/2024,Income,Investment,500.00
-07/11/2024,Expense,Netflix Subscription,12.99
-06/11/2024,Income,Side Project,150.00
-05/11/2024,Expense,Electricity Bill,75.25
-04/11/2024,Income,Gift,100.00
-03/11/2024,Expense,Movie Tickets,25.00
-02/11/2024,Income,Affiliate Earnings,120.00
-01/11/2024,Expense,Takeout,18.50
-31/10/2024,Income,Online Course,60.00
-30/10/2024,Expense,Coffee,4.80
-29/10/2024,Income,Bonus,300.00
-28/10/2024,Expense,Car Insurance,150.00
-27/10/2024,Income,Stocks Dividend,80.00
-26/10/2024,Expense,Books,22.95
-25/10/2024,Income,Freelance Photography,350.00
-24/10/2024,Expense,Petrol,40.00
-23/10/2024,Income,Side Business,250.00
-22/10/2024,Expense,Takeout,15.00
-21/10/2024,Income,Gift from Friend,50.00
-20/10/2024,Expense,Subscription Box,30.00
-19/10/2024,Income,Web Design Project,500.00
-18/10/2024,Expense,Home Cleaning,35.00
-17/10/2024,Income,Rent,1200.00
-16/10/2024,Expense,Gym Membership,45.00
-15/10/2024,Income,Freelance Writing,200.00
+01/11/2024,Expense,Food,20.50
+02/11/2024,Expense,Transport,12.30
+03/11/2024,Income,Salary,1500.00
+04/11/2024,Expense,Bills,75.00
+05/11/2024,Income,Gift,100.00
+06/11/2024,Expense,Entertainment,40.00
+07/11/2024,Income,Bonus,250.00
+08/11/2024,Expense,Petrol,35.00
+09/11/2024,Expense,Shopping,60.00
+10/11/2024,Income,Salary,1500.00
+11/11/2024,Expense,Healthcare,55.00
+12/11/2024,Income,Freelance Work,300.00
+13/11/2024,Expense,Food,45.75
+14/11/2024,Income,Bonus,500.00
+15/11/2024,Expense,Subscriptions,15.99
+16/11/2024,Expense,Transport,22.00
+17/11/2024,Income,Gift,150.00
+18/11/2024,Expense,Shopping,72.00
+19/11/2024,Income,Salary,1500.00
+20/11/2024,Expense,Other,30.00
 

@@ -2,6 +2,13 @@ from datetime import datetime
 
 date_format = "%d/%m/%Y"
 CATEGORIES = {"I": "Income", "E": "Expense"}
+EXPENSE_DESCRIPTIONS = [
+    "Food", "Entertainment", "Subscriptions", "Bills", "Petrol", 
+    "Transport", "Healthcare", "Shopping", "Other"
+]
+INCOME_DESCRIPTIONS = [
+    "Salary", "Bonus", "Gift", "Other"
+]
 
 def get_date(prompt, allow_default=False):
     date_str = input(prompt)
@@ -27,10 +34,40 @@ def get_category():
         print("Invalid category. Please enter 'I' for Income or 'E' for Expense: ")
         return get_category()
 
-def get_description():
-    description = input("Enter a description: ")
-    print(f"Description entered: {description}")  # Debugging: print the description
-    return description
+def get_description(category):
+    if category == "Expense":
+        print("Select a description from the following options:")
+        for i, desc in enumerate(EXPENSE_DESCRIPTIONS, 1):
+            print(f"{i}. {desc}")
+        try:
+            selection = int(input(f"Enter the number of the description: "))
+            if 1 <= selection <= len(EXPENSE_DESCRIPTIONS):
+                description = EXPENSE_DESCRIPTIONS[selection - 1]
+                print(f"Description entered: {description}")  # Debugging: print the description
+                return description
+            else:
+                print("Invalid selection. Please enter a number between 1 and 9.")
+                return get_description(category)
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+            return get_description(category)
+    
+    elif category == "Income":
+        print("Select a description from the following options:")
+        for i, desc in enumerate(INCOME_DESCRIPTIONS, 1):
+            print(f"{i}. {desc}")
+        try:
+            selection = int(input(f"Enter the number of the description: "))
+            if 1 <= selection <= len(INCOME_DESCRIPTIONS):
+                description = INCOME_DESCRIPTIONS[selection - 1]
+                print(f"Description entered: {description}")  # Debugging: print the description
+                return description
+            else:
+                print("Invalid selection. Please enter a number between 1 and 4.")
+                return get_description(category)
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+            return get_description(category)
 
 def get_amount():
     try:

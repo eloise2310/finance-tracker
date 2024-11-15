@@ -60,7 +60,7 @@ def add():
     CSV.initialize_csv()
     date = get_date("Enter the date of the transaction (dd/mm/yyyy) or enter for todays date: ", allow_default=True)
     category = get_category()
-    description = get_description()
+    description = get_description(category)
     amount = get_amount()
     CSV.add_entry(date, category, description, amount)
 
@@ -69,14 +69,14 @@ def plot_transactions(df):
 
     income_df = df[df["category"] == "Income"].resample("D").sum().reindex(df.index, fill_value=0)
     expense_df = df[df["category"] == "Expense"].resample("D").sum().reindex(df.index, fill_value=0)
+    expense_breakdown = expense_df.groupby("description")["amount"].sum().sort_values(ascending=False)
 
-    plt.figure(figsize=(10,5))
-    plt.plot(income_df.index, income_df["amount"], label="Income", color="g")
-    plt.plot(expense_df.index, expense_df["amount"], label="Expense", color="r")
-    plt.xlabel("Date")
+    plt.figure(figsize=(10, 5))
+    expense_breakdown.plot(kind="bar", color="orange")
+    plt.xlabel("Description")
     plt.ylabel("Amount")
-    plt.title("Income and Expenses")
-    plt.legend()
+    plt.title("Expense Breakdown by Category")
+    plt.xticks(rotation=45)
     plt.grid(True)
     plt.show()
 
@@ -93,7 +93,7 @@ def main():
             start_date = get_date("Enter the start date (dd/mm/yyyy): ")
             end_date = get_date("Enter the end date (dd/mm/yyyy): ")
             df = CSV.get_transactions(start_date, end_date)
-            if input("Do you want to see a plot? (y/n): ").lower() == "y":
+            if input("Do you want to see a graph? (y/n): ").lower() == "y":
                 print("Plotting transactions...")
                 plot_transactions(df)
         elif choice == "3":
