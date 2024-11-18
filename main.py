@@ -3,6 +3,21 @@ import csv
 from datetime import datetime
 from data_entry import get_amount, get_category, get_date, get_description
 import matplotlib.pyplot as plt
+from flask import Flask, render_template
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    finance_data = []
+
+    with open("finance_data.csv", newline="", encoding="utf-8") as csvfile:
+              csvreader = csv.DictReader(csvfile)
+              for row in csvreader:
+                  row['amount'] = float(row['amount'])
+                  finance_data.append(row)
+
+    return render_template("index.html", data=finance_data)
 
 class CSV:
     CSV_FILE = "finance_data.csv"
@@ -55,6 +70,8 @@ class CSV:
             print(f"Total remaining: £{(total_income - total_expense):.2f}")
 
             return filtered_df
+        
+
 
 def add():
     CSV.initialize_csv()
@@ -104,3 +121,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    app.run(debug=True)
