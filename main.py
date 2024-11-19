@@ -1,7 +1,7 @@
 import pandas as pd 
 import csv 
-from datetime import datetime
-from data_entry import get_amount, get_category, get_date, get_description
+from datetime import datetime, timedelta
+import os
 import matplotlib.pyplot as plt
 from flask import Flask, render_template, redirect, url_for, request
 
@@ -28,17 +28,20 @@ class CSV:
             "description": description,
             "amount": amount
         }
-        with open(cls.CSV_FILE, "a", newline ="") as csvfile:
+        with open(cls.CSV_FILE, "a", newline="") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=cls.COLUMNS)
             writer.writerow(new_entry)
         print("Entry added successfully")
 
     @classmethod
     def get_transactions(cls, start_date, end_date):
+        if isinstance(start_date, str):
+            start_date = datetime.strptime(start_date, cls.FORMAT)
+        if isinstance(end_date, str):
+            end_date = datetime.strptime(end_date, cls.FORMAT)
+
         df = pd.read_csv(cls.CSV_FILE)
         df["date"] = pd.to_datetime(df["date"], format=CSV.FORMAT)
-        start_date = datetime.strptime(start_date, CSV.FORMAT)
-        end_date = datetime.strptime(end_date, CSV.FORMAT)
 
         mask = (df["date"] >= start_date) & (df["date"] <= end_date)
         filtered_df = df.loc[mask]
@@ -58,72 +61,21 @@ class CSV:
             print(f"Total remaining: £{(total_income - total_expense):.2f}")
 
             return filtered_df
-        
 
-# dont need as changed to using flask method
-# def add():
-#     CSV.initialize_csv()
-#     date = get_date("Enter the date of the transaction (dd/mm/yyyy) or enter for todays date: ", allow_default=True)
-#     category = get_category()
-#     description = get_description(category)
-#     amount = get_amount()
-#     CSV.add_entry(date, category, description, amount)
-
-# def plot_transactions(df):
-#     df.set_index("date", inplace=True)
-
-#     income_df = df[df["category"] == "Income"].resample("D").sum().reindex(df.index, fill_value=0)
-#     expense_df = df[df["category"] == "Expense"].resample("D").sum().reindex(df.index, fill_value=0)
-#     expense_breakdown = expense_df.groupby("description")["amount"].sum().sort_values(ascending=False)
-
-#     plt.figure(figsize=(10, 5))
-#     expense_breakdown.plot(kind="bar", color="orange")
-#     plt.xlabel("Description")
-#     plt.ylabel("Amount")
-#     plt.title("Expense Breakdown by Category")
-#     plt.xticks(rotation=45)
-#     plt.grid(True)
-#     plt.show()
-
-# def main():
-#     while True:
-#         print("\n1. Add a new transaction")
-#         print("\n2. View transactions within a time frame")
-#         print("\n3. Exit")
-#         choice = input("Enter your choice (1-3)")
-
-#         if choice == "1":
-#             add()
-#         elif choice == "2":
-#             start_date = get_date("Enter the start date (dd/mm/yyyy): ")
-#             end_date = get_date("Enter the end date (dd/mm/yyyy): ")
-#             df = CSV.get_transactions(start_date, end_date)
-#             if input("Do you want to see a graph? (y/n): ").lower() == "y":
-#                 print("Plotting transactions...")
-#                 plot_transactions(df)
-#         elif choice == "3":
-#             print("Exiting...")
-#             break
-#         else:
-#             print("Invalid choice, please enter 1, 2 or 3.")
-
-# flask routes
+# Flask routes
 @app.route("/")
 def index():
     finance_data = []
 
     with open("finance_data.csv", newline="", encoding="utf-8") as csvfile:
-              csvreader = csv.DictReader(csvfile)
-              for row in csvreader:
-                  row['amount'] = float(row['amount'])
-                  finance_data.append(row)
+        csvreader = csv.DictReader(csvfile)
+        for row in csvreader:
+            row['amount'] = float(row['amount'])
+            finance_data.append(row)
 
     return render_template("index.html", data=finance_data)
 
-# get and post methods 
-@app.route("/add", methods =["GET", "POST"])
-
-# add a transaction using POST
+@app.route("/add", methods=["GET", "POST"])
 def add_transaction():
     if request.method == "POST":
         date = request.form["date"]
@@ -132,52 +84,75 @@ def add_transaction():
         amount = request.form["amount"]
 
         CSV.add_entry(date, category, description, float(amount))
-        return redirected(url_for("index"))
+        return redirect(url_for("index"))
     
-    return render_template("add_transaction.html") # returns back to homepage
+    return render_template("add_transaction.html")  # returns back to homepage
 
-@app.route("/filter", methods =["GET", "POST"])
+@app.route("/filter", methods=["GET", "POST"])
 def filter_transactions():
     if request.method == "POST":
         start_date = request.form["start_date"]
         end_date = request.form["end_date"]
 
-        start_date = datetime.strptime(start_date, "%d/%m/%Y")
-        end_date = datetime.strptime(end_date, "%d/%m/%Y") # puts start and end date in correct date format
-
-        finance_data = CSV.get_transactions(start_date, end_date)
-        return render_template("index.html", data = finance_data.to_dict(orient="record"))
+        # Redirect to the plot page with the selected date range
+        return redirect(url_for('filter_transactions', start_date=start_date, end_date=end_date))
     
     return render_template("filter_transactions.html")
 
-@app.route("/plot")
+@app.route('/plot')
+def plot_png():
+    fig = create_figure()
+    output = io.BytesIO()
+    FigureCanvas(fig).print_png(output)
+    return Response(output.getvalue(), mimetype='image/png')
+
+def create_figure():
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    xs = range(100)
+    ys = [random.randint(1, 50) for x in xs]
+    axis.plot(xs, ys)
+    return fig
+
 def plot_transactions():
-    finance_data = CSV.get_transactions()
-    
-    df = finance_data.copy()
-    df.set_index("date", inplace=True)
+    # Retrieve start_date and end_date from the URL parameters
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
 
-    income_df = df[df["category"] == "Income"].resample("D").sum().reindex(df.index, fill_value=0)
-    expense_df = df[df["category"] == "Expense"].resample("D").sum().reindex(df.index, fill_value=0)
-    expense_breakdown = expense_df.groupby("description")["amount"].sum().sort_values(ascending=False)
+    if not start_date or not end_date:
+        # Default to a fixed date range (e.g., last 30 days)
+        start_date = (datetime.now() - timedelta(days=30)).strftime('%d/%m/%Y')
+        end_date = datetime.now().strftime('%d/%m/%Y')
 
-    # Plot the expense breakdown
+    # Fetch the transaction data
+    finance_data = CSV.get_transactions(start_date, end_date)
+
+    # Create a plot
     plt.figure(figsize=(10, 5))
+
+    # Plot expense breakdown by description
+    expense_df = finance_data[finance_data["category"] == "Expense"]
+    expense_breakdown = expense_df.groupby("description")["amount"].sum().sort_values(ascending=False)
     expense_breakdown.plot(kind="bar", color="orange")
+
     plt.xlabel("Description")
     plt.ylabel("Amount")
     plt.title("Expense Breakdown by Category")
     plt.xticks(rotation=45)
     plt.grid(True)
-    plt.savefig("static/expense_plot.png")  # Save the plot as a static image file
+
+    # Save the plot as an image file in the 'static' folder
+    plot_path = os.path.join('static', 'transactions_plot.png')
+    plt.savefig(plot_path)
+
+    # Close the plot after saving it
     plt.close()
 
-    return render_template('plot.html', plot_url='/static/expense_plot.png')
+    # Render the template and pass the plot path to it
+    return render_template('plot.html', plot_url=plot_path)
 
+# Initialize CSV when the app starts
 CSV.initialize_csv()
 
-
-
 if __name__ == "__main__":
-    # main()
     app.run(debug=True)

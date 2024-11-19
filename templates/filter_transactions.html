@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter Transactions</title>
+</head>
+<body>
+    <h1>Filter Transactions</h1>
+
+    <!-- Filter Form -->
+    <form action="/filter" method="POST">
+        <label for="start_date">Start Date (dd/mm/yyyy):</label>
+        <input type="text" id="start_date" name="start_date" placeholder="dd/mm/yyyy" required>
+        <br><br>
+
+        <label for="end_date">End Date (dd/mm/yyyy):</label>
+        <input type="text" id="end_date" name="end_date" placeholder="dd/mm/yyyy" required>
+        <br><br>
+
+        <input type="submit" value="Filter Transactions">
+    </form>
+
+    <br><br>
+
+    <!-- Display filtered transactions if any -->
+    {% if data %}
+        <h2>Filtered Transactions</h2>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in data %}
+                    <tr>
+                        <td>{{ transaction.date }}</td>
+                        <td>{{ transaction.category }}</td>
+                        <td>{{ transaction.description }}</td>
+                        <td>£{{ transaction.amount }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <br>
+    <a href="/">Back to Home</a>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plot Transactions</title>
+</head>
+<body>
+    <h1>Plot Expense Breakdown</h1>
+
+    <!-- Form to input date range for the plot -->
+    <form action="/plot" method="POST">
+        <label for="start_date">Start Date (dd/mm/yyyy):</label>
+        <input type="text" id="start_date" name="start_date" placeholder="dd/mm/yyyy">
+        <br><br>
+
+        <label for="end_date">End Date (dd/mm/yyyy):</label>
+        <input type="text" id="end_date" name="end_date" placeholder="dd/mm/yyyy">
+        <br><br>
+
+        <input type="submit" value="Generate Plot">
+    </form>
+
+    <br><br>
+    <!-- Display the plot image -->
+    <img src="{{ plot_url }}" alt="Expense Breakdown Plot">
+
+    <br><br>
+    <a href="/">Back to Home</a>
+</body>
+</html>
