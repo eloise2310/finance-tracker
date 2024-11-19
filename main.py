@@ -3,21 +3,9 @@ import csv
 from datetime import datetime
 from data_entry import get_amount, get_category, get_date, get_description
 import matplotlib.pyplot as plt
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for, request
 
 app = Flask(__name__)
-
-@app.route('/')
-def index():
-    finance_data = []
-
-    with open("finance_data.csv", newline="", encoding="utf-8") as csvfile:
-              csvreader = csv.DictReader(csvfile)
-              for row in csvreader:
-                  row['amount'] = float(row['amount'])
-                  finance_data.append(row)
-
-    return render_template("index.html", data=finance_data)
 
 class CSV:
     CSV_FILE = "finance_data.csv"
@@ -72,22 +60,108 @@ class CSV:
             return filtered_df
         
 
+# dont need as changed to using flask method
+# def add():
+#     CSV.initialize_csv()
+#     date = get_date("Enter the date of the transaction (dd/mm/yyyy) or enter for todays date: ", allow_default=True)
+#     category = get_category()
+#     description = get_description(category)
+#     amount = get_amount()
+#     CSV.add_entry(date, category, description, amount)
 
-def add():
-    CSV.initialize_csv()
-    date = get_date("Enter the date of the transaction (dd/mm/yyyy) or enter for todays date: ", allow_default=True)
-    category = get_category()
-    description = get_description(category)
-    amount = get_amount()
-    CSV.add_entry(date, category, description, amount)
+# def plot_transactions(df):
+#     df.set_index("date", inplace=True)
 
-def plot_transactions(df):
+#     income_df = df[df["category"] == "Income"].resample("D").sum().reindex(df.index, fill_value=0)
+#     expense_df = df[df["category"] == "Expense"].resample("D").sum().reindex(df.index, fill_value=0)
+#     expense_breakdown = expense_df.groupby("description")["amount"].sum().sort_values(ascending=False)
+
+#     plt.figure(figsize=(10, 5))
+#     expense_breakdown.plot(kind="bar", color="orange")
+#     plt.xlabel("Description")
+#     plt.ylabel("Amount")
+#     plt.title("Expense Breakdown by Category")
+#     plt.xticks(rotation=45)
+#     plt.grid(True)
+#     plt.show()
+
+# def main():
+#     while True:
+#         print("\n1. Add a new transaction")
+#         print("\n2. View transactions within a time frame")
+#         print("\n3. Exit")
+#         choice = input("Enter your choice (1-3)")
+
+#         if choice == "1":
+#             add()
+#         elif choice == "2":
+#             start_date = get_date("Enter the start date (dd/mm/yyyy): ")
+#             end_date = get_date("Enter the end date (dd/mm/yyyy): ")
+#             df = CSV.get_transactions(start_date, end_date)
+#             if input("Do you want to see a graph? (y/n): ").lower() == "y":
+#                 print("Plotting transactions...")
+#                 plot_transactions(df)
+#         elif choice == "3":
+#             print("Exiting...")
+#             break
+#         else:
+#             print("Invalid choice, please enter 1, 2 or 3.")
+
+# flask routes
+@app.route("/")
+def index():
+    finance_data = []
+
+    with open("finance_data.csv", newline="", encoding="utf-8") as csvfile:
+              csvreader = csv.DictReader(csvfile)
+              for row in csvreader:
+                  row['amount'] = float(row['amount'])
+                  finance_data.append(row)
+
+    return render_template("index.html", data=finance_data)
+
+# get and post methods 
+@app.route("/add", methods =["GET", "POST"])
+
+# add a transaction using POST
+def add_transaction():
+    if request.method == "POST":
+        date = request.form["date"]
+        category = request.form["category"]
+        description = request.form["description"]
+        amount = request.form["amount"]
+
+        CSV.add_entry(date, category, description, float(amount))
+        return redirected(url_for("index"))
+    
+    return render_template("add_transaction.html") # returns back to homepage
+
+@app.route("/filter", methods =["GET", "POST"])
+def filter_transactions():
+    if request.method == "POST":
+        start_date = request.form["start_date"]
+        end_date = request.form["end_date"]
+
+        start_date = datetime.strptime(start_date, "%d/%m/%Y")
+        end_date = datetime.strptime(end_date, "%d/%m/%Y") # puts start and end date in correct date format
+
+        finance_data = CSV.get_transactions(start_date, end_date)
+        return render_template("index.html", data = finance_data.to_dict(orient="record"))
+    
+    return render_template("filter_transactions.html")
+
+@app.route("/plot")
+def plot_transactions():
+    finance_data = CSV.get_transactions()
+    
+    df = finance_data.copy()
     df.set_index("date", inplace=True)
 
     income_df = df[df["category"] == "Income"].resample("D").sum().reindex(df.index, fill_value=0)
     expense_df = df[df["category"] == "Expense"].resample("D").sum().reindex(df.index, fill_value=0)
     expense_breakdown = expense_df.groupby("description")["amount"].sum().sort_values(ascending=False)
 
+    # Plot the expense breakdown
     plt.figure(figsize=(10, 5))
     expense_breakdown.plot(kind="bar", color="orange")
     plt.xlabel("Description")
@@ -95,30 +169,15 @@ def plot_transactions(df):
     plt.title("Expense Breakdown by Category")
     plt.xticks(rotation=45)
     plt.grid(True)
-    plt.show()
+    plt.savefig("static/expense_plot.png")  # Save the plot as a static image file
+    plt.close()
 
-def main():
-    while True:
-        print("\n1. Add a new transaction")
-        print("\n2. View transactions within a time frame")
-        print("\n3. Exit")
-        choice = input("Enter your choice (1-3)")
+    return render_template('plot.html', plot_url='/static/expense_plot.png')
 
-        if choice == "1":
-            add()
-        elif choice == "2":
-            start_date = get_date("Enter the start date (dd/mm/yyyy): ")
-            end_date = get_date("Enter the end date (dd/mm/yyyy): ")
-            df = CSV.get_transactions(start_date, end_date)
-            if input("Do you want to see a graph? (y/n): ").lower() == "y":
-                print("Plotting transactions...")
-                plot_transactions(df)
-        elif choice == "3":
-            print("Exiting...")
-            break
-        else:
-            print("Invalid choice, please enter 1, 2 or 3.")
+CSV.initialize_csv()
+
+
 
 if __name__ == "__main__":
-    main()
+    # main()
     app.run(debug=True)
