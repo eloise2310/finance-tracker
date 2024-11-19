@@ -28,7 +28,7 @@
                             <tr>
                                 <td>{{ transaction['date'] }}</td>
                                 <td>{{ transaction['category'] }}</td>
-                                <td>${{ '%.2f'|format(transaction['amount']) }}</td>
+                                <td>£{{ '%.2f'|format(transaction['amount']) }}</td>
                             </tr>
                         {% endfor %}
                     {% else %}
